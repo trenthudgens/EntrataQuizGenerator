@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quiz Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .topic-screen {
+            text-align: center;
+        }
+
+        .topic-screen p {
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        #topicInput {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        #topicInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .question {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .option label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+
+        #results button {
+            width: 48%;
+            display: inline-block;
+            margin: 5px 1%;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+
+        .result-item.correct {
+            background: #c8e6c9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .result-item.incorrect {
+            background: #ffcdd2;
+            border-left: 4px solid #f44336;
+        }
+
+        .result-question {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-answer {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .history-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .history-topic {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-score {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 AI Quiz Generator</h1>
+
+        <!-- Topic Input Screen -->
+        <div id="topicScreen" class="topic-screen">
+            <p>Enter a topic to generate a 5-question multiple choice quiz!</p>
+            <input type="text" id="topicInput" placeholder="e.g., photosynthesis, neural networks, ancient rome" autofocus>
+            <button onclick="generateQuiz()">Generate Quiz</button>
+            <button onclick="showHistory()" style="margin-top: 10px; background: #6c757d;">View Past Quizzes</button>
+        </div>
+
+        <!-- History Screen -->
+        <div id="historyScreen" class="hidden">
+            <h2 style="margin-bottom: 10px;">Past Quizzes</h2>
+            <p style="text-align: center; color: #999; font-size: 14px; margin-bottom: 20px;">Click to view/retake</p>
+            <div id="historyList"></div>
+            <button onclick="backToHome()">Back to Home</button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="hidden loading">
+            <div class="spinner"></div>
+            <p>Generating your quiz...</p>
+        </div>
+
+        <!-- Quiz Form -->
+        <form id="quizForm" class="hidden">
+            <div id="questionsContainer"></div>
+            <button type="submit">Submit Quiz</button>
+        </form>
+
+        <!-- Results -->
+        <div id="results" class="hidden">
+            <div class="score" id="scoreDisplay"></div>
+            <div id="resultsList"></div>
+            <button onclick="retakeQuiz()">Try Again</button>
+            <button onclick="resetQuiz()">Try Another Topic</button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestions = [];
+        let currentTopic = '';
+
+        async function generateQuiz() {
+            const topic = document.getElementById('topicInput').value.trim();
+
+            if (!topic) {
+                alert('Please enter a topic!');
+                return;
+            }
+
+            currentTopic = topic;
+
+            // Show loading screen
+            document.getElementById('topicScreen').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    resetQuiz();
+                    return;
+                }
+
+                currentQuestions = data.questions;
+                displayQuiz(data.questions);
+
+            } catch (error) {
+                alert('Error generating quiz: ' + error.message);
+                resetQuiz();
+            }
+        }
+
+        function displayQuiz(questions) {
+            document.getElementById('loadingScreen').classList.add('hidden');
+
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = questions.map((q, idx) => `
+                <div class="question">
+                    <div class="question-text">${idx + 1}. ${q.question}</div>
+                    <div class="options">
+                        ${q.options.map((option, optIdx) => `
+                            <div class="option" onclick="selectOption(this)">
+                                <input type="radio"
+                                       id="q${q.id}_opt${optIdx}"
+                                       name="q${q.id}"
+                                       value="${optIdx}"
+                                       required>
+                                <label for="q${q.id}_opt${optIdx}">${option}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('quizForm').classList.remove('hidden');
+        }
+
+        function selectOption(optionDiv) {
+            const radio = optionDiv.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+
+        document.getElementById('quizForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const answers = {};
+
+            for (let [key, value] of formData.entries()) {
+                const questionId = key.replace('q', '');
+                answers[questionId] = value;
+            }
+
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ answers })
+                });
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                alert('Error submitting quiz: ' + error.message);
+            }
+        });
+
+        function displayResults(data) {
+            document.getElementById('quizForm').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+
+            document.getElementById('scoreDisplay').innerHTML =
+                `Score: ${data.score}/${data.total} (${data.percentage}%)`;
+
+            const resultsList = document.getElementById('resultsList');
+            resultsList.innerHTML = data.results.map((result, index) => `
+                <div class="result-item ${result.correct ? 'correct' : 'incorrect'}">
+                    <div class="result-question">${index + 1}. ${result.question}</div>
+                    <div class="result-answer">
+                        Your answer: ${result.user_answer}<br>
+                        ${!result.correct ? `Correct answer: ${result.correct_answer}<br><br><em>${result.reasoning}</em>` : '✓ Correct!'}
+                    </div>
+                </div>
+            `).join('');
+
+            // Save to localStorage
+            saveQuizHistory(data.score, data.total, data.percentage);
+
+            window.scrollTo(0, 0);
+        }
+
+        function saveQuizHistory(score, total, percentage) {
+            // Get existing history
+            let history = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+
+            // Find if this topic already exists
+            const existingIndex = history.findIndex(item => item.topic === currentTopic);
+
+            const quizData = {
+                topic: currentTopic,
+                questions: currentQuestions,
+                bestScore: score,
+                bestPercentage: percentage,
+                total: total,
+                attempts: 1,
+                lastAttempt: new Date().toISOString()
+            };
+
+            if (existingIndex >= 0) {
+                // Update existing entry with best score
+                const existing = history[existingIndex];
+                quizData.attempts = existing.attempts + 1;
+
+                if (score > existing.bestScore) {
+                    quizData.bestScore = score;
+                    quizData.bestPercentage = percentage;
+                } else {
+                    quizData.bestScore = existing.bestScore;
+                    quizData.bestPercentage = existing.bestPercentage;
+                }
+
+                history[existingIndex] = quizData;
+            } else {
+                // Add new entry
+                history.unshift(quizData);
+            }
+
+            // Keep only last 20 quizzes
+            history = history.slice(0, 20);
+
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function retakeQuiz() {
+            // Hide results and show the same quiz again
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('quizForm').classList.remove('hidden');
+
+            // Clear all radio button selections
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+
+            window.scrollTo(0, 0);
+        }
+
+        function resetQuiz() {
+            // Reset all screens
+            document.getElementById('topicScreen').classList.remove('hidden');
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('quizForm').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('historyScreen').classList.add('hidden');
+
+            // Clear topic input
+            document.getElementById('topicInput').value = '';
+            document.getElementById('topicInput').focus();
+
+            // Clear questions
+            currentQuestions = [];
+            document.getElementById('questionsContainer').innerHTML = '';
+
+            window.scrollTo(0, 0);
+        }
+
+        function showHistory() {
+            // Hide other screens
+            document.getElementById('topicScreen').classList.add('hidden');
+            document.getElementById('historyScreen').classList.remove('hidden');
+
+            // Get history from localStorage
+            const history = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+            const historyList = document.getElementById('historyList');
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="empty-history">No past quizzes yet. Take your first quiz!</div>';
+                return;
+            }
+
+            // Display history items
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item" onclick="loadHistoryQuiz('${item.topic.replace(/'/g, "\\'")}')">
+                    <div class="history-topic">${item.topic}</div>
+                    <div class="history-score">
+                        Best Score: ${item.bestScore}/${item.total} (${item.bestPercentage}%) •
+                        Attempts: ${item.attempts} •
+                        Last: ${new Date(item.lastAttempt).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+
+            window.scrollTo(0, 0);
+        }
+
+        function backToHome() {
+            document.getElementById('historyScreen').classList.add('hidden');
+            document.getElementById('topicScreen').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function loadHistoryQuiz(topic) {
+            // Get history from localStorage
+            const history = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+            const quizData = history.find(item => item.topic === topic);
+
+            if (!quizData) {
+                alert('Quiz not found');
+                return;
+            }
+
+            // Set current topic and questions
+            currentTopic = quizData.topic;
+            currentQuestions = quizData.questions;
+
+            // Hide history screen and display the quiz
+            document.getElementById('historyScreen').classList.add('hidden');
+            displayQuiz(quizData.questions);
+        }
+    </script>
+</body>
+</html>
