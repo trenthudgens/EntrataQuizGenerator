@@ -87,5 +87,3 @@ class QuizSet(BaseModel):
     - It didn't know that 4.5 had been released
     - Old knowledge of langchain
     - Wanted to use too many dependencies and overall wanted to write verbose code, which had to be curbed via prompting and manual edits
-- Environment issues:
-    - I hadn't install
