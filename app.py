@@ -24,7 +24,8 @@ class QuizSet(BaseModel):
 # Initialize Claude model
 llm = ChatAnthropic(
     model="claude-sonnet-4-5",
-    api_key=os.getenv("ANTHROPIC_API_KEY")
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+    max_tokens=8192
 )
 
 @app.route('/')
@@ -120,3 +121,4 @@ def submit_quiz():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
