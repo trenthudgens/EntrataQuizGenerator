@@ -9,9 +9,6 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
 # Pydantic models for structured output
-class QuizOption(BaseModel):
-    text: str = Field(description="The text of this answer option")
-
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
     options: List[str] = Field(description="Exactly 4 answer options")
@@ -121,4 +118,5 @@ def submit_quiz():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
